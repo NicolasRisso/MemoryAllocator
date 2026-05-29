@@ -2,7 +2,11 @@ package main
 
 import "core:mem"
 import "core:mem/virtual"
-import rl "vendor:raylib"
+import raylib "vendor:raylib"
+
+MAX_WALLS: u8 : 255
+MAX_SPAWNERS: u8 : 16 
+MAX_BULLETS: u16 : 1024
 
 Bullet_Type :: enum {
     Bouncer,
@@ -11,29 +15,35 @@ Bullet_Type :: enum {
 }
 
 Bullet :: struct {
-    pos:    rl.Vector2,
-    vel:    rl.Vector2,
+    position: raylib.Vector2,
+    velocity: raylib.Vector2,
     radius: f32,
-    type:   Bullet_Type,
+    type: Bullet_Type,
 }
 
 Wall :: struct {
-    p1:           rl.Vector2,
-    p2:           rl.Vector2,
+    pos1: raylib.Vector2,
+    pos2: raylib.Vector2,
     invulnerable: bool,
 }
 
 Bullet_Spawner :: struct {
-    pos:             rl.Vector2,
+    position: raylib.Vector2,
     spawn_frequency: f32,
-    velocity:        f32,
-    bullet_type:     Bullet_Type,
-    spawn_timer:     f32,
+    velocity: f32,
+    bullet_type: Bullet_Type,
+    spawn_timer: f32,
 }
 
 Player :: struct {
-    pos:    rl.Vector2,
+    position: raylib.Vector2,
     radius: f32,
+}
+
+Level :: struct {
+    walls: [MAX_WALLS]Wall,
+    spawners: [MAX_SPAWNERS]Bullet_Spawner,
+    bulelts: [MAX_BULLETS]Bullet
 }
 
 State :: struct {
@@ -42,10 +52,14 @@ State :: struct {
     wall_thickness: f32,
     player_speed:   f32,
     player:         Player,
-    bullets:        [dynamic]Bullet,
-    walls:          [dynamic]Wall,
-    spawners:       [dynamic]Bullet_Spawner,
     
+    walls:          [MAX_WALLS]Wall,
+    wall_count:     int,
+    spawners:       [MAX_SPAWNERS]Bullet_Spawner,
+    spawner_count:  int,
+    bullets:        [MAX_BULLETS]Bullet,
+    bullet_count:   int,
+
     // Core game metrics
     time_survived:  f64,
     is_game_over:   bool,
@@ -54,17 +68,6 @@ State :: struct {
 // Global Level Memory Arena and Game State Pointer
 g_level_arena: virtual.Arena
 g_state: ^State
-
-// Initializes the growing virtual memory arena for level play sessions
-init_memory :: proc() {
-    err := virtual.arena_init_growing(&g_level_arena)
-    assert(err == nil, "Failed to initialize Level virtual memory arena")
-}
-
-// Fully decommits and destroys the Level memory arena on shutdown
-cleanup_memory :: proc() {
-    virtual.arena_destroy(&g_level_arena)
-}
 
 // Loads a map, resetting all previous map entities at zero cost
 load_map :: proc(filepath: string) -> bool {
@@ -79,9 +82,9 @@ load_map :: proc(filepath: string) -> bool {
         return false
     }
 
-    // 3. Create a temporary growing arena specifically for JSON parsing overhead
+    // 3. Create a temporary static arena specifically for JSON parsing overhead
     json_arena: virtual.Arena
-    err_arena := virtual.arena_init_growing(&json_arena)
+    err_arena := virtual.arena_init_static(&json_arena, 2 * mem.Megabyte)
     if err_arena != nil {
         return false
     }
@@ -100,23 +103,23 @@ load_map :: proc(filepath: string) -> bool {
     g_state.wall_thickness = json_map.wall_thickness
     g_state.player_speed = json_map.player_speed
 
-    // Allocate dynamic arrays using the Level Arena allocator
-    g_state.walls = make([dynamic]Wall, level_allocator)
-    g_state.spawners = make([dynamic]Bullet_Spawner, level_allocator)
-    g_state.bullets = make([dynamic]Bullet, level_allocator)
-
+    g_state.wall_count = 0
     // Populate the permanent State walls from the JSON walls
     for jw in json_map.walls {
+        if g_state.wall_count >= int(MAX_WALLS) do break
         w := Wall{
-            p1 = rl.Vector2{jw.x1, jw.y1},
-            p2 = rl.Vector2{jw.x2, jw.y2},
+            pos1 = raylib.Vector2{jw.x1, jw.y1},
+            pos2 = raylib.Vector2{jw.x2, jw.y2},
             invulnerable = jw.invulnerable,
         }
-        append(&g_state.walls, w)
+        g_state.walls[g_state.wall_count] = w
+        g_state.wall_count += 1
     }
 
+    g_state.spawner_count = 0
     // Populate the permanent State spawners from the JSON spawners
     for js in json_map.bullet_spawners {
+        if g_state.spawner_count >= int(MAX_SPAWNERS) do break
         type := Bullet_Type.Bouncer
         if js.bullet_type == "bulldozer" {
             type = .Bulldozer
@@ -125,17 +128,18 @@ load_map :: proc(filepath: string) -> bool {
         }
 
         s := Bullet_Spawner{
-            pos = rl.Vector2{js.x, js.y},
+            position = raylib.Vector2{js.x, js.y},
             spawn_frequency = js.spawn_frequency,
             velocity = js.velocity,
             bullet_type = type,
             spawn_timer = 0.0,
         }
-        append(&g_state.spawners, s)
+        g_state.spawners[g_state.spawner_count] = s
+        g_state.spawner_count += 1
     }
 
     // Spawn player at map center
-    g_state.player.pos = rl.Vector2{f32(g_state.map_width) / 2, f32(g_state.map_height) / 2}
+    g_state.player.position = raylib.Vector2{f32(g_state.map_width) / 2, f32(g_state.map_height) / 2}
     g_state.player.radius = 12.0
 
     return true
