@@ -5,16 +5,17 @@ import "core:os"
 import "core:fmt"
 import "core:mem"
 
-import raylib "vendor:raylib"
-
 JSON_Wall :: struct {
-    pos1: raylib.Vector2,
-    pos2: raylib.Vector2,
+    x1: f32,
+    y1: f32,
+    x2: f32,
+    y2: f32,
     invulnerable: bool,
 }
 
 JSON_Bullet_Spawner :: struct {
-    pos: raylib.Vector2,
+    x: f32,
+    y: f32,
     spawn_frequency: f32,
     velocity: f32,
     bullet_type: string,

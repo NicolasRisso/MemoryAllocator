@@ -102,8 +102,8 @@ load_level :: proc(filepath: string) -> bool {
     for json_wall in json_map.walls {
         if g_state.wall_count >= MAX_WALLS do break
         wall := Wall{
-            pos1 = json_wall.pos1,
-            pos2 = json_wall.pos1,
+            pos1 = raylib.Vector2{json_wall.x1, json_wall.y1},
+            pos2 = raylib.Vector2{json_wall.x2, json_wall.y2},
             invulnerable = json_wall.invulnerable,
         }
         g_state.walls[g_state.wall_count] = wall
@@ -122,7 +122,7 @@ load_level :: proc(filepath: string) -> bool {
         }
 
         spawner := Bullet_Spawner{
-            position = json_spawner.pos,
+            position = raylib.Vector2{json_spawner.x, json_spawner.y},
             spawn_frequency = json_spawner.spawn_frequency,
             velocity = json_spawner.velocity,
             bullet_type = type,
