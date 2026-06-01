@@ -3,12 +3,19 @@ package main
 import "core:fmt"
 import "core:mem"
 import "core:mem/virtual"
+
 import raylib "vendor:raylib"
+
+// Palette Colors
+color_bg :: raylib.Color{225, 225, 225, 255} // Light Gray
+color_wall :: raylib.Color{80, 80, 80, 255}    // Dark Gray
+color_spawner :: raylib.Color{230, 45, 45, 255}   // Red
+color_player :: raylib.Color{40, 80, 180, 255}   // Blue
 
 main :: proc() {
     // 1. Initialize Level Allocator (Arena)
     // We use a static virtual arena for the level. It gets cleared on map load.
-    err_level := virtual.arena_init_static(&g_level_arena, 2 * mem.Megabyte)
+    err_level := virtual.arena_init_static(&g_level_arena, size_of(State))
     if err_level != nil {
         fmt.eprintfln("Fatal Error: Failed to initialize level arena")
         return
@@ -33,25 +40,18 @@ main :: proc() {
     }
 
     // 3. Initialize Raylib window based on JSON map specifications
-    raylib.InitWindow(i32(g_state.map_width), i32(g_state.map_height), "Bullet Dodge Arcade Game - Base Loader")
+    raylib.InitWindow(i32(g_state.map_width), i32(g_state.map_height), "Bullet Dodge Arcade Game")
     defer raylib.CloseWindow()
 
     raylib.SetTargetFPS(60)
 
-    // Palette Colors
-    color_bg       := raylib.Color{225, 225, 225, 255} // Light Gray
-    color_wall     := raylib.Color{80, 80, 80, 255}    // Dark Gray
-    color_spawner  := raylib.Color{230, 45, 45, 255}   // Red
-    color_player   := raylib.Color{40, 80, 180, 255}   // Blue
-
     fmt.println("Map loaded successfully!")
-    fmt.printf("Resolution: %dx%d, Player Speed: %.1f, Wall Thickness: %.1f\n", 
-        g_state.map_width, g_state.map_height, g_state.player_speed, g_state.wall_thickness)
+    fmt.printf("Resolution: %dx%d, Player Speed: %.1f, Wall Thickness: %.1f\n", g_state.map_width, g_state.map_height, g_state.player_speed, g_state.wall_thickness)
 
     // Main Game Loop
     for !raylib.WindowShouldClose() {
         // Delta time
-        dt := raylib.GetFrameTime()
+        delta_time := raylib.GetFrameTime()
 
         // 4. Update phase (Simple player movement to show interaction)
         move_dir := raylib.Vector2{0, 0}
@@ -62,7 +62,7 @@ main :: proc() {
 
         if raylib.Vector2Length(move_dir) > 0 {
             move_dir = raylib.Vector2Normalize(move_dir)
-            g_state.player.position += move_dir * g_state.player_speed * dt
+            g_state.player.position += move_dir * g_state.player_speed * delta_time
         }
 
         // Keep player inside screen margins as a basic constraint
