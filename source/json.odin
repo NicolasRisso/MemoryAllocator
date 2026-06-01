@@ -6,16 +6,12 @@ import "core:fmt"
 import "core:mem"
 
 JSON_Wall :: struct {
-    x1: f32,
-    y1: f32,
-    x2: f32,
-    y2: f32,
+    x1, y1, x2, y2: f32,
     invulnerable: bool,
 }
 
 JSON_Bullet_Spawner :: struct {
-    x: f32,
-    y: f32,
+    x, y: f32,
     spawn_frequency: f32,
     velocity: f32,
     bullet_type: string,
