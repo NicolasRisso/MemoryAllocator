@@ -47,18 +47,18 @@ Level :: struct {
 }
 
 State :: struct {
-    map_width:      i32,
-    map_height:     i32,
+    map_width:      u32,
+    map_height:     u32,
     wall_thickness: f32,
     player_speed:   f32,
     player:         Player,
     
     walls:          [MAX_WALLS]Wall,
-    wall_count:     int,
+    wall_count:     u8,
     spawners:       [MAX_SPAWNERS]Bullet_Spawner,
-    spawner_count:  int,
+    spawner_count:  u8,
     bullets:        [MAX_BULLETS]Bullet,
-    bullet_count:   int,
+    bullet_count:   u16,
 
     // Core game metrics
     time_survived:  f64,
@@ -70,32 +70,26 @@ g_level_arena: virtual.Arena
 g_state: ^State
 
 // Loads a map, resetting all previous map entities at zero cost
-load_map :: proc(filepath: string) -> bool {
-    level_allocator := virtual.arena_allocator(&g_level_arena)
+load_level :: proc(filepath: string) -> bool {
     
-    // 1. Wipe the entire Level Arena. This frees previous State, bullets, walls, etc.
+    // 1. Make static arena and allocate the state
+    level_allocator := virtual.arena_allocator(&g_level_arena)
     free_all(level_allocator)
-
-    // 2. Allocate the State struct itself inside the clean Level Arena
     g_state = new(State, level_allocator)
-    if g_state == nil {
-        return false
-    }
+    if g_state == nil do return false
 
-    // 3. Create a temporary static arena specifically for JSON parsing overhead
+    // 2. Json Growing Arena
     json_arena: virtual.Arena
-    err_arena := virtual.arena_init_static(&json_arena, 2 * mem.Megabyte)
-    if err_arena != nil {
-        return false
-    }
-    defer virtual.arena_destroy(&json_arena)
+    err_arena := virtual.arena_init_growing(&json_arena)
+    if err_arena != nil do return false
     json_allocator := virtual.arena_allocator(&json_arena)
 
+    // 3. Clears json arena when method is over
+    defer virtual.arena_destroy(&json_arena)
+
     // 4. Parse the JSON using the temporary JSON arena allocator
-    json_map, ok := parse_map_json(filepath, json_allocator)
-    if !ok {
-        return false
-    }
+    json_map, json_result := parse_map_json(filepath, json_allocator)
+    if !json_result do return false
 
     // 5. Transfer configurations into the permanent Level State struct
     g_state.map_width = json_map.map_width
@@ -103,38 +97,38 @@ load_map :: proc(filepath: string) -> bool {
     g_state.wall_thickness = json_map.wall_thickness
     g_state.player_speed = json_map.player_speed
 
-    g_state.wall_count = 0
     // Populate the permanent State walls from the JSON walls
-    for jw in json_map.walls {
-        if g_state.wall_count >= int(MAX_WALLS) do break
-        w := Wall{
-            pos1 = raylib.Vector2{jw.x1, jw.y1},
-            pos2 = raylib.Vector2{jw.x2, jw.y2},
-            invulnerable = jw.invulnerable,
+    g_state.wall_count = 0
+    for json_wall in json_map.walls {
+        if g_state.wall_count >= MAX_WALLS do break
+        wall := Wall{
+            pos1 = json_wall.pos1,
+            pos2 = json_wall.pos1,
+            invulnerable = json_wall.invulnerable,
         }
-        g_state.walls[g_state.wall_count] = w
+        g_state.walls[g_state.wall_count] = wall
         g_state.wall_count += 1
     }
 
-    g_state.spawner_count = 0
     // Populate the permanent State spawners from the JSON spawners
-    for js in json_map.bullet_spawners {
-        if g_state.spawner_count >= int(MAX_SPAWNERS) do break
+    g_state.spawner_count = 0
+    for json_spawner in json_map.bullet_spawners {
+        if g_state.spawner_count >= MAX_SPAWNERS do break
         type := Bullet_Type.Bouncer
-        if js.bullet_type == "bulldozer" {
+        if json_spawner.bullet_type == "bulldozer" {
             type = .Bulldozer
-        } else if js.bullet_type == "constructor" {
+        } else if json_spawner.bullet_type == "constructor" {
             type = .Constructor
         }
 
-        s := Bullet_Spawner{
-            position = raylib.Vector2{js.x, js.y},
-            spawn_frequency = js.spawn_frequency,
-            velocity = js.velocity,
+        spawner := Bullet_Spawner{
+            position = json_spawner.pos,
+            spawn_frequency = json_spawner.spawn_frequency,
+            velocity = json_spawner.velocity,
             bullet_type = type,
             spawn_timer = 0.0,
         }
-        g_state.spawners[g_state.spawner_count] = s
+        g_state.spawners[g_state.spawner_count] = spawner
         g_state.spawner_count += 1
     }
 

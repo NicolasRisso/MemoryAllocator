@@ -26,14 +26,14 @@ main :: proc() {
     defer virtual.arena_destroy(&g_hud_arena)
 
     // 2. Load the initial map
-    map_path := "maps/default.json"
-    if !load_map(map_path) {
+    map_path : string = "maps/default.json"
+    if !load_level(map_path) {
         fmt.println("Fatal Error: Failed to load map:", map_path)
         return
     }
 
     // 3. Initialize Raylib window based on JSON map specifications
-    raylib.InitWindow(g_state.map_width, g_state.map_height, "Bullet Dodge Arcade Game - Base Loader")
+    raylib.InitWindow(i32(g_state.map_width), i32(g_state.map_height), "Bullet Dodge Arcade Game - Base Loader")
     defer raylib.CloseWindow()
 
     raylib.SetTargetFPS(60)
@@ -101,7 +101,7 @@ main :: proc() {
         
         raylib.DrawText(fps_text, 10, 10, 20, raylib.DARKGRAY)
         raylib.DrawText(info_text, 10, 35, 16, raylib.DARKGRAY)
-        raylib.DrawText("Use WASD or Arrows to move the Blue Player dot", 10, g_state.map_height - 25, 16, raylib.DARKGRAY)
+        raylib.DrawText("Use WASD or Arrows to move the Blue Player dot", 10, i32(g_state.map_height) - 25, 16, raylib.DARKGRAY)
 
         // Clear HUD allocator each frame
         free_all(hud_allocator)
