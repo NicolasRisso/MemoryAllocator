@@ -1,0 +1,19 @@
+{
+  "map_width": 800,
+  "map_height": 600,
+  "wall_thickness": 5,
+  "player_speed": 220,
+  "walls": [
+    { "x1": 0, "y1": 0, "x2": 800, "y2": 0, "invulnerable": true },
+    { "x1": 0, "y1": 600, "x2": 800, "y2": 600, "invulnerable": true },
+    { "x1": 0, "y1": 0, "x2": 0, "y2": 600, "invulnerable": true },
+    { "x1": 800, "y1": 0, "x2": 800, "y2": 600, "invulnerable": true }
+  ],
+  "bullet_spawners": [
+    { "x": 200, "y": 200, "spawn_frequency": 3.0, "velocity": 120, "bullet_type": "constructor" },
+    { "x": 600, "y": 200, "spawn_frequency": 3.0, "velocity": 120, "bullet_type": "constructor" },
+    { "x": 200, "y": 400, "spawn_frequency": 3.0, "velocity": 120, "bullet_type": "constructor" },
+    { "x": 600, "y": 400, "spawn_frequency": 3.0, "velocity": 120, "bullet_type": "constructor" },
+    { "x": 400, "y": 300, "spawn_frequency": 5.0, "velocity": 150, "bullet_type": "bulldozer" }
+  ]
+}

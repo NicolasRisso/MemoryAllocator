@@ -1,0 +1,28 @@
+{
+  "map_width": 1000,
+  "map_height": 800,
+  "wall_thickness": 12,
+  "player_speed": 250,
+  "walls": [
+    { "x1": 0, "y1": 0, "x2": 1000, "y2": 0, "invulnerable": true },
+    { "x1": 0, "y1": 800, "x2": 1000, "y2": 800, "invulnerable": true },
+    { "x1": 0, "y1": 0, "x2": 0, "y2": 800, "invulnerable": true },
+    { "x1": 1000, "y1": 0, "x2": 1000, "y2": 800, "invulnerable": true },
+    
+    { "x1": 400, "y1": 300, "x2": 450, "y2": 300, "invulnerable": true },
+    { "x1": 550, "y1": 300, "x2": 600, "y2": 300, "invulnerable": true },
+    { "x1": 400, "y1": 500, "x2": 450, "y2": 500, "invulnerable": true },
+    { "x1": 550, "y1": 500, "x2": 600, "y2": 500, "invulnerable": true },
+    
+    { "x1": 400, "y1": 300, "x2": 400, "y2": 350, "invulnerable": true },
+    { "x1": 400, "y1": 450, "x2": 400, "y2": 500, "invulnerable": true },
+    { "x1": 600, "y1": 300, "x2": 600, "y2": 350, "invulnerable": true },
+    { "x1": 600, "y1": 450, "x2": 600, "y2": 500, "invulnerable": true }
+  ],
+  "bullet_spawners": [
+    { "x": 50, "y": 50, "spawn_frequency": 1.0, "velocity": 150, "bullet_type": "bouncer" },
+    { "x": 950, "y": 50, "spawn_frequency": 1.0, "velocity": 150, "bullet_type": "bouncer" },
+    { "x": 50, "y": 750, "spawn_frequency": 1.0, "velocity": 150, "bullet_type": "bouncer" },
+    { "x": 950, "y": 750, "spawn_frequency": 1.0, "velocity": 150, "bullet_type": "bouncer" }
+  ]
+}
