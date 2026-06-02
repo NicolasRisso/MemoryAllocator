@@ -47,6 +47,9 @@ main :: proc() {
         frame_data.wall_count = g_state.wall_count
         frame_data.spawner_count = g_state.spawner_count
         frame_data.map_height = g_state.map_height
+        frame_data.map_width = g_state.map_width
+        frame_data.bullet_count = g_state.bullet_count
+        frame_data.time_survived = g_state.time_survived
 
         // Update phase
         game_update(frame_data)
