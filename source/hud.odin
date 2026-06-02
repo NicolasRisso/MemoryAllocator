@@ -41,8 +41,5 @@ hud_draw :: proc(data: ^Frame_Data) {
     ms_width := raylib.MeasureText(ms_text, 20)
     ms_x := i32(data.map_width) - ms_width - 10
     raylib.DrawText(ms_text, ms_x, 10, 20, raylib.DARKGRAY)
-
-    // Instructions at bottom
-    raylib.DrawText("Use WASD or Arrows to move the Blue Player dot", 10, i32(data.map_height) - 25, 16, raylib.DARKGRAY)
 }
 
