@@ -194,6 +194,21 @@ game_update :: proc(frame_data: ^Frame_Data) {
             b_idx += 1
         }
     }
+
+    // 7. Check Player-Bullet Collisions
+    player_pos = g_state.player.position
+    player_radius = g_state.player.radius
+    for i in 0..<g_state.bullet_count {
+        b := &g_state.bullets[i]
+        diff := player_pos - b.position
+        dist_sq := diff.x * diff.x + diff.y * diff.y
+        total_r := player_radius + b.radius
+        if dist_sq < total_r * total_r {
+            g_state.is_game_over = true
+            g_app_state = .GameOver
+            break
+        }
+    }
 }
 
 game_draw_world :: proc() {
