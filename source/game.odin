@@ -169,7 +169,7 @@ game_update :: proc(frame_data: ^Frame_Data) {
                 } else if b.type == .Constructor {
                     // Spawn perpendicular wall centered at impact point
                     perp := raylib.Vector2{ -b.velocity.y, b.velocity.x }
-                    perp = raylib.Vector2Normalize(perp) * 30.0 // L/2 = 30.0
+                    perp = raylib.Vector2Normalize(perp) * 75.0 // L/2 = 75.0
                     
                     if g_state.wall_count < MAX_WALLS {
                         new_wall := Wall{
@@ -231,7 +231,7 @@ game_draw_world :: proc() {
     // Draw bullets as colored circles
     for i in 0..<g_state.bullet_count {
         b := &g_state.bullets[i]
-        color := raylib.YELLOW
+        color := raylib.ORANGE
         if b.type == .Bulldozer {
             color = raylib.PURPLE
         } else if b.type == .Constructor {
